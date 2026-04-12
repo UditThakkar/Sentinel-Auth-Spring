@@ -1,13 +1,16 @@
 package com.udit.authlib.security;
 
+import ch.qos.logback.core.util.StringUtil;
 import com.udit.authlib.properties.AuthProperties;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
@@ -27,6 +30,7 @@ public class JwtUtils {
   public String generateJwtToken(Authentication authentication) {
     UserDetails userPrincipal = (UserDetails) authentication.getPrincipal();
 
+    assert userPrincipal != null;
     return Jwts.builder()
             .setSubject((userPrincipal.getUsername()))
             .setIssuedAt(new Date())
