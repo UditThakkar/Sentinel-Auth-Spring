@@ -1,6 +1,5 @@
 package com.udit.authlib.entity;
 
-import com.udit.authlib.enums.UserRoles;
 import com.udit.authlib.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -18,7 +17,6 @@ import java.util.stream.Collectors;
 @Data
 @NoArgsConstructor
 public class User implements UserDetails {
-
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
