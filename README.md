@@ -2,57 +2,37 @@
 
 A robust, API-only Java Spring Boot library designed to handle the core complexities of authentication and user management. This package is built for developers who want a drop-in security layer that is strictly stateless, highly configurable, and production-ready.
 
-## 🚀 Features
+## 🛠 Roadmap & Feature Progress
 
-- **Strictly Stateless Authentication**: Pure JWT-based flow with no session or cookie dependencies.
-- **Unified Login**: Support for logging in via either `username` or `email` out of the box.
-- **Secure Registration**: Managed signup flow with password hashing (BCrypt) and automatic role assignment.
-- **Account Security (Brute-Force Protection)**:
-  - Automatic account locking after 5 failed attempts.
-  - Configurable lockout duration (default: 60 minutes).
-  - Persistence-backed tracking of failed attempts.
-- **Scalable Role Management**: Table-based Many-to-Many role system (transitioned from Enums for better scalability).
-- **Professional Error Handling**: Global `@RestControllerAdvice` providing structured JSON error responses.
-- **Configurable Endpoints**: All authentication endpoints are fully configurable via Spring Properties.
+Below is the master plan for the framework. Items marked with `[x]` are implemented and verified.
 
-## 🛠 Technologies
+### 🔐 1. Core Authentication (The Foundation)
+- [x] **Strictly Stateless Architecture**: JWT-based, no `HttpSession`.
+- [x] **Custom Security Gateway**: Lambda-based `SecurityFilterChain` with custom `AuthenticationEntryPoint`.
+- [x] **Unified Login**: Authentication via `username` OR `email`.
+- [x] **Scalable Role Engine**: Many-to-Many JPA mapping for roles.
+- [x] **JWT Utility Suite**: Generation, validation, and claim extraction.
 
-- **Java 17+**
-- **Spring Boot 3.x**
-- **Spring Security 6.x**
-- **Spring Data JPA**
-- **JSON Web Tokens (jjwt)**
-- **PostgreSQL**
-- **Lombok**
+### 🛡 2. Advanced Security (The Shield)
+- [x] **Brute-Force Protection**: Automatic account locking after 5 failed attempts.
+- [x] **Configurable Lockout**: Persistence-backed `lockedUntil` logic.
+- [x] **Secure Hashing**: BCrypt password encoding.
+- [x] **Global Error Management**: Structured JSON responses for all security exceptions.
+- [ ] **Refresh Tokens**: Long-lived session management without credential re-entry (Ticket #8).
+- [ ] **Two-Factor Authentication (2FA)**: TOTP support (Future).
 
-## ⚙️ Configuration
+### 👤 3. User & Account Management
+- [x] **Flexible Registration**: Validation-backed signup API.
+- [ ] **Email Verification**: Token-based onboarding flow (Ticket #9).
+- [ ] **Password Reset**: Secure forgot-password flow via email tokens (Ticket #10).
+- [ ] **Account Unlock**: Admin/Email-based unlock mechanism.
+- [ ] **Profile Management**: API for users to update their own details.
 
-Add the following properties to your `application.properties` to customize the library:
+### 📊 4. Compliance & Audit
+- [ ] **Audit Logging**: Dedicated table to track every login, failure, and security change.
+- [ ] **GDPR Suite**: Endpoints for data export and account "Right to be Forgotten".
 
-```properties
-# JWT Configuration
-auth-api.jwtSecret=your-very-long-and-secure-secret-key
-auth-api.jwtExpirationMs=3600000
-
-# Endpoint Configuration
-auth-api.baseEndpoint=/api/auth
-auth-api.signinEndpoint=/signin
-auth-api.signupEndpoint=/signup
-```
-
-## 📂 Project Structure
-
-```text
-com.udit.authlib
-├── controller      # REST Controllers (AuthController)
-├── dto             # Data Transfer Objects (Requests/Responses)
-├── entity          # JPA Entities (User, Role)
-├── enums           # Shared Enums (UserStatus)
-├── exception       # Custom Exceptions & Global Handler
-├── properties      # Library Configuration (AuthProperties)
-├── repository      # Data Access Layers (UserRepository, RoleRepository)
-└── security        # Core Logic (JwtUtils, AuthService, SecurityConfig)
-```
+---
 
 ## 📡 API Documentation
 
