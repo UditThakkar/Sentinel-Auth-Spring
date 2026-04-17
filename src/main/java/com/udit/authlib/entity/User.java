@@ -2,6 +2,8 @@ package com.udit.authlib.entity;
 
 import com.udit.authlib.enums.UserStatus;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jspecify.annotations.Nullable;
@@ -15,7 +17,9 @@ import java.util.stream.Collectors;
 @Entity
 @Table(name = "users")
 @Data
+@AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class User implements UserDetails {
 
   @Id
@@ -40,6 +44,9 @@ public class User implements UserDetails {
   private int failedLoginAttempts;
 
   private Date lockedUntil;
+
+  private String firstName;
+  private String lastName;
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
