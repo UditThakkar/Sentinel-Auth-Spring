@@ -19,8 +19,15 @@ public class AuthProperties {
      */
     private long jwtExpirationMs = 3600000; // 1 hour
 
+    private String baseEndpoint = "/api/auth";
+
     /**
-     * Custom endpoint for the sign-in API.
+     * Relative endpoint for the sign-in API (appended to baseEndpoint).
      */
-    private String signinEndpoint = "/api/auth/signin";
+    private String signinEndpoint = "/signin";
+
+    /**
+     * Relative endpoint for the sign-up API (appended to baseEndpoint).
+     */
+    private String signupEndpoint = "/signup";
 }
