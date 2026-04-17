@@ -1,6 +1,5 @@
 package com.udit.authlib.dto;
 
-import com.udit.authlib.entity.Role;
 import lombok.Builder;
 import lombok.Data;
 
@@ -12,5 +11,5 @@ public class JwtResponse {
 
   private String token;
   private String username;
-  private List<Role> roles;
+  private List<String> roles;
 }

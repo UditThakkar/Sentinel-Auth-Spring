@@ -1,7 +1,7 @@
 package com.udit.authlib.exception;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -9,7 +9,20 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
   @ExceptionHandler(UserAlreadyExistsException.class)
-  public ResponseEntity<String> handleUserAlreadyExists(UserAlreadyExistsException e) {
-    return ResponseEntity.badRequest().body(e.getMessage());
+  public ResponseEntity<ErrorResponse> handleUserAlreadyExists(UserAlreadyExistsException e) {
+    ErrorResponse error = new ErrorResponse("USER_ALREADY_EXISTS", e.getMessage(), System.currentTimeMillis());
+    return ResponseEntity.badRequest().body(error);
+  }
+
+  @ExceptionHandler(UserLockedException.class)
+  public ResponseEntity<ErrorResponse> handleUserLocked(UserLockedException e) {
+    ErrorResponse error = new ErrorResponse("ACCOUNT_LOCKED", e.getMessage(), System.currentTimeMillis());
+    return ResponseEntity.status(423).body(error);  // 423 Locked
+  }
+
+  @ExceptionHandler(BadCredentialsException.class)
+  public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException e) {
+    ErrorResponse error = new ErrorResponse("BAD_CREDENTIALS", e.getMessage(), System.currentTimeMillis());
+    return ResponseEntity.status(401).body(error);
   }
 }
