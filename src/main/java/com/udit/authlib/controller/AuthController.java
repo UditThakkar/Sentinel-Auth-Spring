@@ -9,6 +9,7 @@ import com.udit.authlib.security.AuthService;
 import com.udit.authlib.security.JwtUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("${auth-api.baseEndpoint}")
 @RequiredArgsConstructor
@@ -25,17 +27,40 @@ public class AuthController {
 
   @PostMapping("${auth-api.signinEndpoint}")
   public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
-    return ResponseEntity.ok(authService.authenticateUser(loginRequest));
+    log.info("API Call: POST /signin - Authentication request for user: {}", loginRequest.getUsername());
+    try {
+      var response = authService.authenticateUser(loginRequest);
+      log.info("API Response: /signin - Authentication successful for user: {}", loginRequest.getUsername());
+      return ResponseEntity.ok(response);
+    } catch (Exception e) {
+      log.error("API Error: /signin - Authentication failed for user: {} - Error: {}", loginRequest.getUsername(), e.getMessage());
+      throw e;
+    }
   }
 
   @PostMapping("${auth-api.signupEndpoint}")
   public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
-    authService.registerUser(signUpRequest);
-    return ResponseEntity.ok("User registered successfully!");
+    log.info("API Call: POST /signup - Registration request for username: {}, email: {}", signUpRequest.getUsername(), signUpRequest.getEmail());
+    try {
+      authService.registerUser(signUpRequest);
+      log.info("API Response: /signup - Registration successful for username: {}", signUpRequest.getUsername());
+      return ResponseEntity.ok("User registered successfully!");
+    } catch (Exception e) {
+      log.error("API Error: /signup - Registration failed for username: {} - Error: {}", signUpRequest.getUsername(), e.getMessage());
+      throw e;
+    }
   }
 
   @PostMapping("${auth-api.refreshEndpoint}")
   public ResponseEntity<?> refreshToken(@Valid @RequestBody TokenRefreshRequest tokenRefreshRequest) {
-    return ResponseEntity.ok(authService.refreshToken(tokenRefreshRequest));
+    log.info("API Call: POST /refresh - Token refresh request received");
+    try {
+      var response = authService.refreshToken(tokenRefreshRequest);
+      log.info("API Response: /refresh - Token refresh successful");
+      return ResponseEntity.ok(response);
+    } catch (Exception e) {
+      log.error("API Error: /refresh - Token refresh failed - Error: {}", e.getMessage());
+      throw e;
+    }
   }
 }
