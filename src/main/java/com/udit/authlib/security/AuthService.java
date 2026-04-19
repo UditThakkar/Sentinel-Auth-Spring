@@ -3,8 +3,11 @@ package com.udit.authlib.security;
 import com.udit.authlib.dto.JwtResponse;
 import com.udit.authlib.dto.LoginRequest;
 import com.udit.authlib.dto.SignupRequest;
+import com.udit.authlib.dto.TokenRefreshRequest;
+import com.udit.authlib.dto.TokenRefreshResponse;
 import com.udit.authlib.entity.Role;
 import com.udit.authlib.entity.User;
+import com.udit.authlib.entity.RefreshToken;
 import com.udit.authlib.enums.UserStatus;
 import com.udit.authlib.exception.UserAlreadyExistsException;
 import com.udit.authlib.exception.UserLockedException;
@@ -36,6 +39,7 @@ public class AuthService {
   private final RoleRepository roleRepository;
   private final AuthenticationManager authenticationManager;
   private final JwtUtils jwtUtils;
+  private final RefreshTokenService refreshTokenService;
 
 
   @Transactional
@@ -71,8 +75,11 @@ public class AuthService {
       user.setLockedUntil(null);
       userRepository.save(user);
 
+      String refreshToken = refreshTokenService.generateRefreshToken(user).getToken();
+
       return JwtResponse.builder()
               .token(token)
+              .refreshToken(refreshToken)
               .username(user.getUsername())
               .roles(user.getRoles().stream().map(Role::getName).toList())
               .build();
@@ -106,6 +113,17 @@ public class AuthService {
         throw new BadCredentialsException("Invalid username or password");
       }
     }
+  }
+
+  @Transactional
+  public TokenRefreshResponse refreshToken(TokenRefreshRequest request) {
+    RefreshToken refreshToken = refreshTokenService.validateRefreshToken(request.getRefreshToken());
+    User user = refreshToken.getUser();
+    String newAccessToken = jwtUtils.generateJwtToken(new UsernamePasswordAuthenticationToken(user.getUsername(), null, user.getAuthorities()));
+    return TokenRefreshResponse.builder()
+            .accessToken(newAccessToken)
+            .refreshToken(request.getRefreshToken())
+            .build();
   }
 
   private boolean validateRequest(SignupRequest request) {

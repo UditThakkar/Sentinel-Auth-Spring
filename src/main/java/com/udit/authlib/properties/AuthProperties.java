@@ -19,6 +19,11 @@ public class AuthProperties {
      */
     private long jwtExpirationMs = 3600000; // 1 hour
 
+    /**
+     * Refresh token expiration time in milliseconds.
+     */
+    private long refreshTokenExpirationMs = 604800000; // 7 days
+
     private String baseEndpoint = "/api/auth";
 
     /**
@@ -30,4 +35,9 @@ public class AuthProperties {
      * Relative endpoint for the sign-up API (appended to baseEndpoint).
      */
     private String signupEndpoint = "/signup";
+
+    /**
+     * Relative endpoint for the refresh API (appended to baseEndpoint).
+     */
+    private String refreshEndpoint = "/refresh";
 }

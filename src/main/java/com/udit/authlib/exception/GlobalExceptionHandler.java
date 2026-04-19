@@ -25,4 +25,10 @@ public class GlobalExceptionHandler {
     ErrorResponse error = new ErrorResponse("BAD_CREDENTIALS", e.getMessage(), System.currentTimeMillis());
     return ResponseEntity.status(401).body(error);
   }
+
+  @ExceptionHandler(RefreshTokenException.class)
+  public ResponseEntity<ErrorResponse> handleRefreshToken(RefreshTokenException e) {
+    ErrorResponse error = new ErrorResponse("REFRESH_TOKEN_INVALID", e.getMessage(), System.currentTimeMillis());
+    return ResponseEntity.status(401).body(error);
+  }
 }

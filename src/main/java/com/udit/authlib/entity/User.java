@@ -48,6 +48,9 @@ public class User implements UserDetails {
   private String firstName;
   private String lastName;
 
+  @OneToOne(mappedBy = "user")
+  private RefreshToken refreshToken;
+
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
     return roles.stream()

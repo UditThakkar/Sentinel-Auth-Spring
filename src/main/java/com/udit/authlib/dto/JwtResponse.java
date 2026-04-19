@@ -10,6 +10,7 @@ import java.util.List;
 public class JwtResponse {
 
   private String token;
+  private String refreshToken;
   private String username;
   private List<String> roles;
 }
