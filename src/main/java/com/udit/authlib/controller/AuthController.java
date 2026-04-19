@@ -2,6 +2,8 @@ package com.udit.authlib.controller;
 
 import com.udit.authlib.dto.LoginRequest;
 import com.udit.authlib.dto.SignupRequest;
+import com.udit.authlib.dto.TokenRefreshRequest;
+import com.udit.authlib.dto.TokenRefreshResponse;
 import com.udit.authlib.repository.UserRepository;
 import com.udit.authlib.security.AuthService;
 import com.udit.authlib.security.JwtUtils;
@@ -30,5 +32,10 @@ public class AuthController {
   public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
     authService.registerUser(signUpRequest);
     return ResponseEntity.ok("User registered successfully!");
+  }
+
+  @PostMapping("${auth-api.refreshEndpoint}")
+  public ResponseEntity<?> refreshToken(@Valid @RequestBody TokenRefreshRequest tokenRefreshRequest) {
+    return ResponseEntity.ok(authService.refreshToken(tokenRefreshRequest));
   }
 }
