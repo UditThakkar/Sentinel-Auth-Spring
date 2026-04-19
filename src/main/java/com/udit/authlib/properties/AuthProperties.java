@@ -47,4 +47,14 @@ public class AuthProperties {
      * Relative endpoint for the verification API (appended to baseEndpoint).
      */
     private String verifyEndpoint = "/verify";
+
+    /**
+     * Relative endpoint for the forgot password API (appended to baseEndpoint).
+     */
+    private String forgotPasswordEndpoint = "/forgot-password";
+
+    /**
+     * Relative endpoint for the reset password API (appended to baseEndpoint).
+     */
+    private String resetPasswordEndpoint = "/reset-password";
 }
