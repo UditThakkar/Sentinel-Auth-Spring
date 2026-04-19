@@ -51,6 +51,9 @@ public class User implements UserDetails {
   @OneToOne(mappedBy = "user")
   private RefreshToken refreshToken;
 
+  @OneToMany(mappedBy = "user")
+  private List<VerificationToken> token;
+
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
     return roles.stream()

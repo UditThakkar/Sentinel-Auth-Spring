@@ -7,16 +7,14 @@ import com.udit.authlib.dto.TokenRefreshResponse;
 import com.udit.authlib.repository.UserRepository;
 import com.udit.authlib.security.AuthService;
 import com.udit.authlib.security.JwtUtils;
+import com.udit.authlib.service.VerificationTokenService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -24,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
   private final AuthService authService;
+  private final VerificationTokenService verificationTokenService;
 
   @PostMapping("${auth-api.signinEndpoint}")
   public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
@@ -60,6 +59,19 @@ public class AuthController {
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       log.error("API Error: /refresh - Token refresh failed - Error: {}", e.getMessage());
+      throw e;
+    }
+  }
+
+  @GetMapping("${auth-api.verifyEndpoint}")
+  public ResponseEntity<?> verifyToken(@RequestParam String token) {
+    log.info("API Call: GET /verify - Verification request received for token: {}", token);
+    try {
+      verificationTokenService.verifyToken(token);
+      log.info("API Response: /verify - Token verified successfully");
+      return ResponseEntity.ok("Token verified successfully");
+    } catch (Exception e) {
+      log.error("API Error: /verify - Token verification failed for token: {}", token);
       throw e;
     }
   }

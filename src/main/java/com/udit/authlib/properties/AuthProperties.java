@@ -24,6 +24,8 @@ public class AuthProperties {
      */
     private long refreshTokenExpirationMs = 604800000; // 7 days
 
+    private long verificationTokenExpiry = 3600000; // 1 hour
+
     private String baseEndpoint = "/api/auth";
 
     /**
@@ -40,4 +42,9 @@ public class AuthProperties {
      * Relative endpoint for the refresh API (appended to baseEndpoint).
      */
     private String refreshEndpoint = "/refresh";
+
+    /**
+     * Relative endpoint for the verification API (appended to baseEndpoint).
+     */
+    private String verifyEndpoint = "/verify";
 }

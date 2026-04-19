@@ -3,6 +3,7 @@ package com.udit.authlib.exception;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -31,10 +32,24 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(401).body(error);
   }
 
+  @ExceptionHandler(DisabledException.class)
+  public ResponseEntity<ErrorResponse> handleDisabledAccount(DisabledException e) {
+    log.warn("Exception Caught: DisabledException - Account is disabled. User must verify their email before logging in.");
+    ErrorResponse error = new ErrorResponse("EMAIL_NOT_VERIFIED", "Your account is disabled. Please verify your email to activate your account.", System.currentTimeMillis());
+    return ResponseEntity.status(403).body(error);  // 403 Forbidden
+  }
+
   @ExceptionHandler(RefreshTokenException.class)
   public ResponseEntity<ErrorResponse> handleRefreshToken(RefreshTokenException e) {
     log.error("Exception Caught: RefreshTokenException - {}", e.getMessage());
     ErrorResponse error = new ErrorResponse("REFRESH_TOKEN_INVALID", e.getMessage(), System.currentTimeMillis());
+    return ResponseEntity.status(401).body(error);
+  }
+
+  @ExceptionHandler(VerificationTokenException.class)
+  public ResponseEntity<ErrorResponse> handleVerificationToken(VerificationTokenException e) {
+    log.error("Exception Caught: VerificationTokenException - {}", e.getMessage());
+    ErrorResponse error = new ErrorResponse("VERIFICATION_TOKEN_INVALID", e.getMessage(), System.currentTimeMillis());
     return ResponseEntity.status(401).body(error);
   }
 }
