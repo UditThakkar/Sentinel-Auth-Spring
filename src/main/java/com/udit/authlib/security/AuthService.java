@@ -8,16 +8,20 @@ import com.udit.authlib.dto.TokenRefreshResponse;
 import com.udit.authlib.entity.Role;
 import com.udit.authlib.entity.User;
 import com.udit.authlib.entity.RefreshToken;
+import com.udit.authlib.entity.VerificationToken;
 import com.udit.authlib.enums.UserStatus;
 import com.udit.authlib.exception.UserAlreadyExistsException;
 import com.udit.authlib.exception.UserLockedException;
 import com.udit.authlib.repository.RoleRepository;
 import com.udit.authlib.repository.UserRepository;
+import com.udit.authlib.service.EmailService;
+import com.udit.authlib.service.VerificationTokenService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,7 +31,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Calendar;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -42,6 +45,8 @@ public class AuthService {
   private final AuthenticationManager authenticationManager;
   private final JwtUtils jwtUtils;
   private final RefreshTokenService refreshTokenService;
+  private final VerificationTokenService verificationTokenService;
+  private final EmailService emailService;
 
 
   @Transactional
@@ -59,12 +64,16 @@ public class AuthService {
             .email(request.getEmail())
             .password(encodedPassword)
             .roles(Set.of(roleToAssign))
-            .status(UserStatus.VERIFIED)
+            .status(UserStatus.UNVERIFIED)
             .firstName(request.getFirstName())
             .lastName(request.getLastName())
             .build();
 
     userRepository.save(userToSave);
+
+    VerificationToken verificationToken = verificationTokenService.generateVerificationToken(userToSave);
+    emailService.sendVerificationEmail(verificationToken);
+
     log.info("User registered successfully - Username: {}, Email: {}", request.getUsername(), request.getEmail());
   }
 
@@ -93,6 +102,9 @@ public class AuthService {
               .username(user.getUsername())
               .roles(user.getRoles().stream().map(Role::getName).toList())
               .build();
+    } catch (DisabledException e) {
+      log.warn("Account disabled exception for user: {} - User account status is not verified", request.getUsername());
+      throw e;
     } catch (AuthenticationException e) {
       if (e instanceof LockedException) {
         log.warn("Account locked exception for user: {}", request.getUsername());
