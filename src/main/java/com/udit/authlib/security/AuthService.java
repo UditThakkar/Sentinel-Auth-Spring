@@ -15,6 +15,7 @@ import com.udit.authlib.repository.RoleRepository;
 import com.udit.authlib.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -44,7 +46,9 @@ public class AuthService {
 
   @Transactional
   public void registerUser(SignupRequest request) {
+    log.info("Starting user registration for username: {}", request.getUsername());
     if(!validateRequest(request)) {
+      log.warn("Registration failed - Username or email already exists: {}", request.getUsername());
       throw new UserAlreadyExistsException("Username or email already exists");
     }
     var encodedPassword = passwordEncoder.encode(request.getPassword());
@@ -56,13 +60,17 @@ public class AuthService {
             .password(encodedPassword)
             .roles(Set.of(roleToAssign))
             .status(UserStatus.VERIFIED)
+            .firstName(request.getFirstName())
+            .lastName(request.getLastName())
             .build();
 
     userRepository.save(userToSave);
+    log.info("User registered successfully - Username: {}, Email: {}", request.getUsername(), request.getEmail());
   }
 
   @Transactional
   public JwtResponse authenticateUser(LoginRequest request) {
+    log.info("Authentication attempt for user: {}", request.getUsername());
     try {
       Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
       SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -74,9 +82,11 @@ public class AuthService {
       user.setFailedLoginAttempts(0);
       user.setLockedUntil(null);
       userRepository.save(user);
+      log.debug("Failed login attempts reset for user: {}", user.getUsername());
 
       String refreshToken = refreshTokenService.generateRefreshToken(user).getToken();
 
+      log.info("User authenticated successfully - Username: {}, Roles: {}", user.getUsername(), user.getRoles().stream().map(Role::getName).toList());
       return JwtResponse.builder()
               .token(token)
               .refreshToken(refreshToken)
@@ -85,6 +95,7 @@ public class AuthService {
               .build();
     } catch (AuthenticationException e) {
       if (e instanceof LockedException) {
+        log.warn("Account locked exception for user: {}", request.getUsername());
         throw new UserLockedException("Account is locked due to too many failed attempts");
       }
 
@@ -99,17 +110,21 @@ public class AuthService {
       if (userOpt.isPresent()) {
         User user = userOpt.get();
         user.setFailedLoginAttempts(user.getFailedLoginAttempts() + 1);
+        log.warn("Failed login attempt #{} for user: {}", user.getFailedLoginAttempts(), identifier);
         if (user.getFailedLoginAttempts() >= 5) {
           Calendar cal = Calendar.getInstance();
           cal.add(Calendar.MINUTE, 60);
           user.setLockedUntil(cal.getTime());
           userRepository.save(user);
+          log.error("Account locked due to 5 failed attempts - User: {}", identifier);
           throw new UserLockedException("Too many failed attempts, your account has been locked. Please try again after some time");
         } else {
           userRepository.save(user);
+          log.debug("Bad credentials for user: {}", identifier);
           throw new BadCredentialsException("Invalid username or password");
         }
       } else {
+        log.debug("User not found for identifier: {}", identifier);
         throw new BadCredentialsException("Invalid username or password");
       }
     }
@@ -117,9 +132,11 @@ public class AuthService {
 
   @Transactional
   public TokenRefreshResponse refreshToken(TokenRefreshRequest request) {
+    log.info("Token refresh request received");
     RefreshToken refreshToken = refreshTokenService.validateRefreshToken(request.getRefreshToken());
     User user = refreshToken.getUser();
     String newAccessToken = jwtUtils.generateJwtToken(new UsernamePasswordAuthenticationToken(user.getUsername(), null, user.getAuthorities()));
+    log.info("Token refreshed successfully for user: {}", user.getUsername());
     return TokenRefreshResponse.builder()
             .accessToken(newAccessToken)
             .refreshToken(request.getRefreshToken())
