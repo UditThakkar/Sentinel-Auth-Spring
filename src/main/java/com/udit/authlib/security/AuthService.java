@@ -10,6 +10,7 @@ import com.udit.authlib.entity.User;
 import com.udit.authlib.entity.RefreshToken;
 import com.udit.authlib.entity.VerificationToken;
 import com.udit.authlib.enums.UserStatus;
+import com.udit.authlib.enums.VerificationType;
 import com.udit.authlib.exception.UserAlreadyExistsException;
 import com.udit.authlib.exception.UserLockedException;
 import com.udit.authlib.repository.RoleRepository;
@@ -153,6 +154,63 @@ public class AuthService {
             .accessToken(newAccessToken)
             .refreshToken(request.getRefreshToken())
             .build();
+  }
+
+  /**
+   * Handles forgot password request.
+   * SECURITY: Always returns the same response to prevent user enumeration attacks.
+   * @param email the email address to send password reset link to
+   */
+  @Transactional
+  public void requestPasswordReset(String email) {
+    log.info("Password reset request for email: {}", email);
+    
+    Optional<User> userOpt = userRepository.findUserByEmail(email);
+    
+    if (userOpt.isPresent()) {
+      User user = userOpt.get();
+      // Generate PASSWORD_RESET token
+      VerificationToken resetToken = verificationTokenService.generateVerificationToken(user, VerificationType.PASSWORD_RESET);
+      // Send password reset email
+      emailService.sendPasswordResetEmail(resetToken);
+      log.info("Password reset email sent successfully to user: {}", user.getUsername());
+    } else {
+      log.warn("Password reset requested for non-existent email: {}", email);
+    }
+    
+    // Always log the same message to prevent user enumeration
+    log.info("If the email exists in our system, a password reset link has been sent");
+  }
+
+  /**
+   * Resets the user's password using a valid password reset token.
+   * SECURITY: Token is deleted immediately after successful reset to prevent reuse.
+   * @param resetToken the password reset token
+   * @param newPassword the new password
+   */
+  @Transactional
+  public void resetPassword(String resetToken, String newPassword) {
+    log.info("Password reset attempt with token");
+    
+    try {
+      // Validate the token and get the user WITHOUT changing verification status
+      User user = verificationTokenService.validateTokenAndGetUser(resetToken, VerificationType.PASSWORD_RESET);
+      
+      // Encode and update the password
+      String encodedPassword = passwordEncoder.encode(newPassword);
+      user.setPassword(encodedPassword);
+      userRepository.save(user);
+      
+      log.info("Password updated successfully for user: {}", user.getUsername());
+      
+      // Delete the token immediately after use to prevent reuse
+      verificationTokenService.deleteToken(resetToken);
+      log.info("Password reset token deleted for user: {}", user.getUsername());
+      
+    } catch (IllegalArgumentException e) {
+      log.warn("Password reset failed: {}", e.getMessage());
+      throw e;
+    }
   }
 
   private boolean validateRequest(SignupRequest request) {
