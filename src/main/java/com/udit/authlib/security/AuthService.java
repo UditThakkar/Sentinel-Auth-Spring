@@ -15,6 +15,7 @@ import com.udit.authlib.exception.UserAlreadyExistsException;
 import com.udit.authlib.exception.UserLockedException;
 import com.udit.authlib.repository.RoleRepository;
 import com.udit.authlib.repository.UserRepository;
+import com.udit.authlib.service.AuditService;
 import com.udit.authlib.service.EmailService;
 import com.udit.authlib.service.VerificationTokenService;
 import jakarta.transaction.Transactional;
@@ -48,13 +49,15 @@ public class AuthService {
   private final RefreshTokenService refreshTokenService;
   private final VerificationTokenService verificationTokenService;
   private final EmailService emailService;
+  private final AuditService auditService;
 
 
   @Transactional
-  public void registerUser(SignupRequest request) {
+  public void registerUser(SignupRequest request, String ipAddress) {
     log.info("Starting user registration for username: {}", request.getUsername());
     if(!validateRequest(request)) {
       log.warn("Registration failed - Username or email already exists: {}", request.getUsername());
+      auditService.log(request.getUsername(), "SIGNUP_FAILURE", ipAddress, "Username or email already exists");
       throw new UserAlreadyExistsException("Username or email already exists");
     }
     var encodedPassword = passwordEncoder.encode(request.getPassword());
@@ -76,10 +79,11 @@ public class AuthService {
     emailService.sendVerificationEmail(verificationToken);
 
     log.info("User registered successfully - Username: {}, Email: {}", request.getUsername(), request.getEmail());
+    auditService.log(request.getUsername(), "SIGNUP_SUCCESS", ipAddress, "User registered successfully");
   }
 
   @Transactional
-  public JwtResponse authenticateUser(LoginRequest request) {
+  public JwtResponse authenticateUser(LoginRequest request, String ipAddress) {
     log.info("Authentication attempt for user: {}", request.getUsername());
     try {
       Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
@@ -97,6 +101,8 @@ public class AuthService {
       String refreshToken = refreshTokenService.generateRefreshToken(user).getToken();
 
       log.info("User authenticated successfully - Username: {}, Roles: {}", user.getUsername(), user.getRoles().stream().map(Role::getName).toList());
+      auditService.log(user.getUsername(), "LOGIN_SUCCESS", ipAddress, "User authenticated successfully");
+      
       return JwtResponse.builder()
               .token(token)
               .refreshToken(refreshToken)
@@ -105,10 +111,12 @@ public class AuthService {
               .build();
     } catch (DisabledException e) {
       log.warn("Account disabled exception for user: {} - User account status is not verified", request.getUsername());
+      auditService.log(request.getUsername(), "LOGIN_FAILURE", ipAddress, "Account disabled - Not verified");
       throw e;
     } catch (AuthenticationException e) {
       if (e instanceof LockedException) {
         log.warn("Account locked exception for user: {}", request.getUsername());
+        auditService.log(request.getUsername(), "LOGIN_FAILURE", ipAddress, "Account is locked");
         throw new UserLockedException("Account is locked due to too many failed attempts");
       }
 
@@ -130,14 +138,17 @@ public class AuthService {
           user.setLockedUntil(cal.getTime());
           userRepository.save(user);
           log.error("Account locked due to 5 failed attempts - User: {}", identifier);
+          auditService.log(identifier, "ACCOUNT_LOCKED", ipAddress, "Account locked due to 5 failed attempts");
           throw new UserLockedException("Too many failed attempts, your account has been locked. Please try again after some time");
         } else {
           userRepository.save(user);
           log.debug("Bad credentials for user: {}", identifier);
+          auditService.log(identifier, "LOGIN_FAILURE", ipAddress, "Invalid credentials - Attempt #" + user.getFailedLoginAttempts());
           throw new BadCredentialsException("Invalid username or password");
         }
       } else {
         log.debug("User not found for identifier: {}", identifier);
+        auditService.log(identifier, "LOGIN_FAILURE", ipAddress, "User not found");
         throw new BadCredentialsException("Invalid username or password");
       }
     }
@@ -162,7 +173,7 @@ public class AuthService {
    * @param email the email address to send password reset link to
    */
   @Transactional
-  public void requestPasswordReset(String email) {
+  public void requestPasswordReset(String email, String ipAddress) {
     log.info("Password reset request for email: {}", email);
     
     Optional<User> userOpt = userRepository.findUserByEmail(email);
@@ -174,8 +185,10 @@ public class AuthService {
       // Send password reset email
       emailService.sendPasswordResetEmail(resetToken);
       log.info("Password reset email sent successfully to user: {}", user.getUsername());
+      auditService.log(user.getUsername(), "PASSWORD_RESET_REQUESTED", ipAddress, "Password reset link sent to email");
     } else {
       log.warn("Password reset requested for non-existent email: {}", email);
+      auditService.log(email, "PASSWORD_RESET_REQUESTED", ipAddress, "Non-existent email requested password reset");
     }
     
     // Always log the same message to prevent user enumeration
@@ -189,7 +202,7 @@ public class AuthService {
    * @param newPassword the new password
    */
   @Transactional
-  public void resetPassword(String resetToken, String newPassword) {
+  public void resetPassword(String resetToken, String newPassword, String ipAddress) {
     log.info("Password reset attempt with token");
     
     try {
@@ -202,6 +215,7 @@ public class AuthService {
       userRepository.save(user);
       
       log.info("Password updated successfully for user: {}", user.getUsername());
+      auditService.log(user.getUsername(), "PASSWORD_RESET_SUCCESS", ipAddress, "Password reset successful");
       
       // Delete the token immediately after use to prevent reuse
       verificationTokenService.deleteToken(resetToken);
@@ -209,9 +223,11 @@ public class AuthService {
       
     } catch (IllegalArgumentException e) {
       log.warn("Password reset failed: {}", e.getMessage());
+      auditService.log("UNKNOWN", "PASSWORD_RESET_FAILURE", ipAddress, "Invalid or expired reset token");
       throw e;
     }
   }
+
 
   private boolean validateRequest(SignupRequest request) {
     return userRepository.findUserByUsername(request.getUsername()).isEmpty()
