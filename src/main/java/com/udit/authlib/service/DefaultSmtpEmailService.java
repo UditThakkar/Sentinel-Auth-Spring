@@ -2,6 +2,7 @@ package com.udit.authlib.service;
 
 import com.udit.authlib.entity.VerificationToken;
 import com.udit.authlib.enums.VerificationType;
+import com.udit.authlib.properties.AuthProperties;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -17,11 +18,12 @@ import org.springframework.stereotype.Service;
 public class DefaultSmtpEmailService implements EmailService {
 
   private final JavaMailSender mailSender;
+  private final AuthProperties authProperties;
 
   @Async
   @Override
   public void sendVerificationEmail(VerificationToken token) {
-    String link = "http://localhost:8080/api/auth/verify?token=" + token.getToken();
+    String link = authProperties.getFrontendUrl() + authProperties.getBaseEndpoint() + authProperties.getVerifyEndpoint() + "?token=" + token.getToken();
     log.info("Sending verification email with link: {}", link);
 
     try {
@@ -51,7 +53,7 @@ public class DefaultSmtpEmailService implements EmailService {
       log.warn("Attempted to send password reset email with non-reset token type: {}", token.getType());
       throw new IllegalArgumentException("Token is not a password reset token");
     }
-    String link = "http://localhost:8080/api/auth/reset-password?token=" + token.getToken();
+    String link = authProperties.getFrontendUrl() + authProperties.getBaseEndpoint() + authProperties.getResetPasswordEndpoint() + "?token=" + token.getToken();
     log.info("Sending password reset email to user: {} with link: {}", token.getUser().getEmail(), link);
 
     try {
