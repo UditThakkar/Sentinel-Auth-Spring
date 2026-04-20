@@ -67,4 +67,10 @@ public class AuthProperties {
 
     private String appName = "AuthLib";
     private String emailFromName = "AuthLib Support";
+
+    /**
+     * The name of the query parameter used for tokens in email links.
+     * Default is "token".
+     */
+    private String tokenParamName = "token";
 }

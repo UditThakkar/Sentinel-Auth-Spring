@@ -4,7 +4,6 @@ import com.udit.authlib.dto.EmailModel;
 import com.udit.authlib.entity.VerificationToken;
 import org.springframework.stereotype.Service;
 
-@Service
 public class DefaultEmailTemplateProvider implements EmailTemplateProvider{
   @Override
   public EmailModel buildVerificationEmail(VerificationToken token, String link) {

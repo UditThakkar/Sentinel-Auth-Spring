@@ -46,10 +46,10 @@ public class SecurityConfig {
             .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
-                    .requestMatchers(authProperties.getSigninEndpoint()).permitAll()
-                    .requestMatchers("/api/auth/**").permitAll()
+                    .requestMatchers(authProperties.getBaseEndpoint() + "/**").permitAll()
                     .anyRequest().authenticated()
             )
+
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();

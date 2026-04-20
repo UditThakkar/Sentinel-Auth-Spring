@@ -37,7 +37,6 @@ import java.util.Optional;
 import java.util.Set;
 
 @Slf4j
-@Service
 @RequiredArgsConstructor
 public class AuthService {
 

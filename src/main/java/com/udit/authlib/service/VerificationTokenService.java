@@ -14,9 +14,8 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.UUID;
 
-@Service
-@RequiredArgsConstructor
 @Slf4j
+@RequiredArgsConstructor
 public class VerificationTokenService {
 
   private final VerificationTokenRepository repository;

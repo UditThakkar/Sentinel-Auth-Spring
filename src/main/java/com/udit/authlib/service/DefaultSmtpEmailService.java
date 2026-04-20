@@ -12,9 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Service;
 
-@Service
 @RequiredArgsConstructor
 @Slf4j
 public class DefaultSmtpEmailService implements EmailService {
@@ -83,7 +81,7 @@ public class DefaultSmtpEmailService implements EmailService {
    * @return the complete link URL
    */
   private String buildLink(String endpoint, String token) {
-    return authProperties.getFrontendUrl() + authProperties.getBaseEndpoint() + endpoint + "?token=" + token;
+    return authProperties.getFrontendUrl() + authProperties.getBaseEndpoint() + endpoint + "?" + authProperties.getTokenParamName() + "=" + token;
   }
 
   /**

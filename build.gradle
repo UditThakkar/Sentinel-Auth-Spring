@@ -44,3 +44,13 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+// Enable plain JAR generation so other projects can use this as a library
+jar {
+    enabled = true
+    archiveClassifier = ''
+}
+
+bootJar {
+    archiveClassifier = 'boot'
+}
