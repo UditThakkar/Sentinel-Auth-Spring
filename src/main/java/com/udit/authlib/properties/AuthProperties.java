@@ -64,4 +64,7 @@ public class AuthProperties {
      * E.g., http://localhost:3000 or https://myapp.com
      */
     private String frontendUrl = "http://localhost:8080";
+
+    private String appName = "AuthLib";
+    private String emailFromName = "AuthLib Support";
 }
