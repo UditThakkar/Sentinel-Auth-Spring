@@ -3,19 +3,14 @@ package com.udit.authlib.controller;
 import com.udit.authlib.dto.LoginRequest;
 import com.udit.authlib.dto.SignupRequest;
 import com.udit.authlib.dto.TokenRefreshRequest;
-import com.udit.authlib.dto.TokenRefreshResponse;
 import com.udit.authlib.dto.ForgotPasswordRequest;
 import com.udit.authlib.dto.ResetPasswordRequest;
-import com.udit.authlib.repository.UserRepository;
 import com.udit.authlib.security.AuthService;
-import com.udit.authlib.security.JwtUtils;
 import com.udit.authlib.service.VerificationTokenService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
