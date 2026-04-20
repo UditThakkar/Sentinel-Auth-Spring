@@ -1,92 +1,108 @@
-# Auth-Lib: Reusable Spring Boot Authentication Framework
+# AuthLib: Reusable Spring Boot Authentication Starter
 
-A robust, API-only Java Spring Boot library designed to handle the core complexities of authentication and user management. This package is built for developers who want a drop-in security layer that is strictly stateless, highly configurable, and production-ready.
+A professional, "Spring Boot Starter" library designed to handle the core complexities of authentication, user management, and security auditing. Drop this into any Spring Boot project to instantly gain a full-featured security layer.
 
-## 🛠 Roadmap & Feature Progress
+## 🚀 Features
 
-Below is the master plan for the framework. Items marked with `[x]` are implemented and verified.
-
-### 🔐 1. Core Authentication (The Foundation)
-- [x] **Strictly Stateless Architecture**: JWT-based, no `HttpSession`.
-- [x] **Custom Security Gateway**: Lambda-based `SecurityFilterChain` with custom `AuthenticationEntryPoint`.
-- [x] **Unified Login**: Authentication via `username` OR `email`.
-- [x] **Scalable Role Engine**: Many-to-Many JPA mapping for roles.
-- [x] **JWT Utility Suite**: Generation, validation, and claim extraction.
-
-### 🛡 2. Advanced Security (The Shield)
-- [x] **Brute-Force Protection**: Automatic account locking after 5 failed attempts.
-- [x] **Configurable Lockout**: Persistence-backed `lockedUntil` logic.
-- [x] **Secure Hashing**: BCrypt password encoding.
-- [x] **Global Error Management**: Structured JSON responses for all security exceptions.
-- [ ] **Refresh Tokens**: Long-lived session management without credential re-entry (Ticket #8).
-- [ ] **Two-Factor Authentication (2FA)**: TOTP support (Future).
-
-### 👤 3. User & Account Management
-- [x] **Flexible Registration**: Validation-backed signup API.
-- [ ] **Email Verification**: Token-based onboarding flow (Ticket #9).
-- [ ] **Password Reset**: Secure forgot-password flow via email tokens (Ticket #10).
-- [ ] **Account Unlock**: Admin/Email-based unlock mechanism.
-- [ ] **Profile Management**: API for users to update their own details.
-
-### 📊 4. Compliance & Audit
-- [ ] **Audit Logging**: Dedicated table to track every login, failure, and security change.
-- [ ] **GDPR Suite**: Endpoints for data export and account "Right to be Forgotten".
+- **JWT Authentication**: Secure, stateless sessions with automated token generation and validation.
+- **Refresh Token System**: Long-lived sessions without sacrificing security.
+- **Account Security**: Automatic account locking after 5 failed attempts (60-minute lockout).
+- **Email Verification**: Token-based onboarding flow with customizable email links.
+- **Password Recovery**: Secure forgot-password flow via email tokens.
+- **Audit Logging**: Asynchronous logging of all security events (Login, Signup, Reset, Lockout) with IP tracking.
+- **Customizable Emailing**: Pluggable `EmailTemplateProvider` and `EmailService`.
+- **Auto-Configuration**: Zero-boilerplate setup—just add the dependency and properties.
 
 ---
 
-## 📡 API Documentation
+## 📦 Installation
 
-### 1. User Registration
-**POST** `/api/auth/signup`
-```json
-{
-  "username": "udit",
-  "email": "udit@example.com",
-  "password": "securePassword123",
-  "firstName": "Udit",
-  "lastName": "Sharma"
-}
+### 1. Build the Library
+Run the following command in the library root:
+```bash
+./gradlew publishToMavenLocal
 ```
 
-### 2. User Login
-**POST** `/api/auth/signin`
-```json
-{
-  "username": "udit@example.com", // Supports username OR email
-  "password": "securePassword123"
+### 2. Add Dependency
+In your **host application's** `build.gradle`:
+```gradle
+dependencies {
+    implementation 'com.udit:auth-lib:0.0.1-SNAPSHOT'
 }
 ```
-**Response:**
-```json
-{
-  "token": "eyJhbG...",
-  "username": "udit",
-  "roles": ["ROLE_USER"]
-}
-```
-
-## 🔒 Security Features
-
-### Account Lockout
-The library automatically monitors failed login attempts. If a user fails to authenticate 5 times in a row, the `lockedUntil` timestamp is set, and the account is disabled for 60 minutes.
-- **401 Unauthorized**: Returned for standard bad credentials.
-- **423 Locked**: Returned once the threshold is reached.
-
-### Global Exception Handling
-All errors return a consistent JSON structure:
-```json
-{
-  "errorCode": "USER_ALREADY_EXISTS",
-  "message": "Username or email already exists",
-  "timestamp": 1713370000000
-}
-```
-
-## 🗺 Roadmap
-- [ ] **Refresh Tokens**: Handle long-lived sessions without re-authentication.
-- [ ] **Email Verification**: Asynchronous onboarding flow with verification links.
-- [ ] **Password Reset**: Secure forgot-password flow with tokens.
-- [ ] **Audit Logging**: Track all security-sensitive events in a dedicated table.
 
 ---
-Developed as a high-performance, reusable backend component.
+
+## ⚙️ Configuration
+
+Add the following to your `application.properties`:
+
+### Required System Properties
+```properties
+# DataSource (Required for JPA)
+spring.datasource.url=jdbc:postgresql://localhost:5432/yourdb
+spring.datasource.username=postgres
+spring.datasource.password=password
+
+# Mail Setup (Required for Email Service)
+spring.mail.host=localhost
+spring.mail.port=1025
+spring.mail.username=support@myapp.com
+spring.mail.password=password
+```
+
+### AuthLib Custom Properties
+| Property | Default | Description |
+|----------|---------|-------------|
+| `auth-api.jwtSecret` | (dev-only-secret) | Secret key for JWT signing |
+| `auth-api.jwtExpirationMs` | `3600000` (1h) | JWT access token validity |
+| `auth-api.baseEndpoint` | `/api/auth` | Base path for all auth APIs |
+| `auth-api.frontendUrl` | `http://localhost:8080` | URL for email links |
+| `auth-api.appName` | `AuthLib` | App name used in email templates |
+| `auth-api.emailFromName` | `AuthLib Support` | Display name for sender |
+| `auth-api.tokenParamName` | `token` | Query param name in email links |
+
+---
+
+## 🎨 Customization
+
+### Overriding Email Templates
+To use your own HTML templates (e.g., Thymeleaf), implement the `EmailTemplateProvider` interface and mark it as a `@Bean` or `@Component` in your project:
+
+```java
+@Component
+@Primary
+public class MyCustomTemplateProvider implements EmailTemplateProvider {
+    @Override
+    public EmailModel buildVerificationEmail(VerificationToken token, String link) {
+        return EmailModel.builder()
+            .subject("Welcome!")
+            .body("<h1>Hello!</h1> <a href='" + link + "'>Click here</a>")
+            .build();
+    }
+    // ... implement other methods
+}
+```
+
+### Overriding the Email Service
+If you want to use AWS SES or SendGrid instead of SMTP, implement the `EmailService` interface:
+
+```java
+@Component
+@Primary
+public class SendGridEmailService implements EmailService {
+    // Your implementation here
+}
+```
+
+---
+
+## 🔍 Audit Logging
+The library automatically tracks security events in the `audit_logs` table.
+- **Events Tracked**: `LOGIN_SUCCESS`, `LOGIN_FAILURE`, `SIGNUP_SUCCESS`, `ACCOUNT_LOCKED`, `PASSWORD_RESET_REQUESTED`, `PASSWORD_RESET_SUCCESS`.
+- **IP Tracking**: All logs include the source IP address of the request.
+
+To view logs, you can inject the `AuditLogRepository` into your own admin controllers.
+
+---
+Developed by **Udit** as a high-performance, reusable security component.
