@@ -57,4 +57,14 @@ public class AuthProperties {
      * Relative endpoint for the reset password API (appended to baseEndpoint).
      */
     private String resetPasswordEndpoint = "/reset-password";
+
+    /**
+     * Frontend URL for building email links.
+     * Should point to the frontend application (not the backend).
+     * E.g., http://localhost:3000 or https://myapp.com
+     */
+    private String frontendUrl = "http://localhost:8080";
+
+    private String appName = "AuthLib";
+    private String emailFromName = "AuthLib Support";
 }
