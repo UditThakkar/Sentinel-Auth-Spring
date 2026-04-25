@@ -49,6 +49,7 @@ public class AuthService {
   private final VerificationTokenService verificationTokenService;
   private final EmailService emailService;
   private final AuditService auditService;
+  private final TokenBlacklistService blacklistService;
 
 
   @Transactional
@@ -225,6 +226,20 @@ public class AuthService {
       auditService.log("UNKNOWN", "PASSWORD_RESET_FAILURE", ipAddress, "Invalid or expired reset token");
       throw e;
     }
+  }
+
+  /**
+   * Logs out the user by deleting their refresh token and blacklisting their current JWT.
+   * @param token the current JWT to blacklist
+   * @param user the currently authenticated user
+   * @param ipAddress the source IP of the request
+   */
+  @Transactional
+  public void logout(String token, User user, String ipAddress) {
+    log.info("Logging out user: {}", user.getUsername());
+    refreshTokenService.deleteByUser(user);
+    blacklistService.blacklistToken(token);
+    auditService.log(user.getUsername(), "LOGOUT", ipAddress, "User logged out and token blacklisted");
   }
 
 
