@@ -5,6 +5,7 @@ import com.udit.authlib.dto.SignupRequest;
 import com.udit.authlib.dto.TokenRefreshRequest;
 import com.udit.authlib.dto.ForgotPasswordRequest;
 import com.udit.authlib.dto.ResetPasswordRequest;
+import com.udit.authlib.entity.User;
 import com.udit.authlib.security.AuthService;
 import com.udit.authlib.service.VerificationTokenService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -99,5 +101,29 @@ public class AuthController {
       log.error("API Error: /reset-password - Password reset failed - Error: {}", e.getMessage());
       throw e;
     }
+  }
+
+  @PostMapping("${auth-api.logoutEndpoint}")
+  public ResponseEntity<?> logout(@AuthenticationPrincipal User user, HttpServletRequest request) {
+    log.info("API Call: POST /logout - Logout request for user: {}", user.getUsername());
+    try {
+      String jwt = parseJwt(request);
+      authService.logout(jwt, user, request.getRemoteAddr());
+      log.info("API Response: /logout - Logout successful");
+      return ResponseEntity.ok("User logged out successfully");
+    } catch (Exception e) {
+      log.error("API Error: /logout - Logout failed - Error: {}", e.getMessage());
+      throw e;
+    }
+  }
+
+  private String parseJwt(HttpServletRequest request) {
+    String headerAuth = request.getHeader("Authorization");
+
+    if (org.springframework.util.StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
+      return headerAuth.substring(7);
+    }
+
+    return null;
   }
 }

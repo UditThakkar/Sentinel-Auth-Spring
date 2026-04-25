@@ -46,4 +46,9 @@ public class RefreshTokenService {
         log.info("Refresh token validated successfully for user: {}", refreshToken.getUser().getUsername());
         return refreshToken;
     }
+
+    public void deleteByUser(User user) {
+        log.info("Deleting refresh tokens for user: {}", user.getUsername());
+        refreshTokenRepository.deleteByUser(user);
+    }
 }

@@ -59,6 +59,11 @@ public class AuthProperties {
     private String resetPasswordEndpoint = "/reset-password";
 
     /**
+     * Relative endpoint for the logout API (appended to baseEndpoint).
+     */
+    private String logoutEndpoint = "/logout";
+
+    /**
      * Frontend URL for building email links.
      * Should point to the frontend application (not the backend).
      * E.g., http://localhost:3000 or https://myapp.com

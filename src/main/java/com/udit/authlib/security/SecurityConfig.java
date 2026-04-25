@@ -41,12 +41,19 @@ public class SecurityConfig {
    */
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    String base = authProperties.getBaseEndpoint();
+    
     http
             .csrf(AbstractHttpConfigurer::disable)
             .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
-                    .requestMatchers(authProperties.getBaseEndpoint() + "/**").permitAll()
+                    .requestMatchers(base + authProperties.getSigninEndpoint()).permitAll()
+                    .requestMatchers(base + authProperties.getSignupEndpoint()).permitAll()
+                    .requestMatchers(base + authProperties.getVerifyEndpoint()).permitAll()
+                    .requestMatchers(base + authProperties.getForgotPasswordEndpoint()).permitAll()
+                    .requestMatchers(base + authProperties.getResetPasswordEndpoint()).permitAll()
+                    .requestMatchers(base + authProperties.getRefreshEndpoint()).permitAll()
                     .anyRequest().authenticated()
             )
 
