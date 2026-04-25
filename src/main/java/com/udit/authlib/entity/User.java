@@ -1,11 +1,9 @@
 package com.udit.authlib.entity;
 
+import com.udit.authlib.entity.base.AuditableEntity;
 import com.udit.authlib.enums.UserStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -16,21 +14,19 @@ import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "users")
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class User implements UserDetails {
-
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private long id;
+public class User extends AuditableEntity implements UserDetails {
 
   private String username;
   private String email;
   private String password;
   
   @Enumerated(EnumType.STRING)
+  @Builder.Default
   private UserStatus status = UserStatus.UNVERIFIED;
 
   @ManyToMany(fetch = FetchType.EAGER)
@@ -39,6 +35,7 @@ public class User implements UserDetails {
           joinColumns = @JoinColumn(name = "user_id"),
           inverseJoinColumns = @JoinColumn(name = "role_id")
   )
+  @Builder.Default
   private Set<Role> roles = new HashSet<>();
 
   private int failedLoginAttempts;
@@ -73,7 +70,7 @@ public class User implements UserDetails {
 
   @Override
   public boolean isAccountNonExpired() {
-    return UserDetails.super.isAccountNonExpired();
+    return true;
   }
 
   @Override
