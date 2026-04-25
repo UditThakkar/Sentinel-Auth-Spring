@@ -1,30 +1,29 @@
 package com.udit.authlib.entity;
 
+import com.udit.authlib.entity.base.AuditableEntity;
 import com.udit.authlib.enums.VerificationType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.Instant;
 
 @Entity
 @Table(name = "verification_tokens")
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class VerificationToken {
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+public class VerificationToken extends AuditableEntity {
 
+  @Column(nullable = false, unique = true)
   private String token;
 
+  @Column(nullable = false)
   private Instant expiry;
 
   @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
   private VerificationType type;
 
   @ManyToOne

@@ -1,25 +1,20 @@
 package com.udit.authlib.entity;
 
+import com.udit.authlib.entity.base.BaseIdEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "audit_logs")
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuditLog {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class AuditLog extends BaseIdEntity {
 
     @Column(nullable = false)
     private String username;
@@ -30,6 +25,7 @@ public class AuditLog {
     private String ipAddress;
 
     @CreationTimestamp
+    @Column(name = "timestamp", updatable = false)
     private LocalDateTime timestamp;
 
     @Column(length = 1000)

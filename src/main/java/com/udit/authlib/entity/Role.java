@@ -1,17 +1,16 @@
 package com.udit.authlib.entity;
 
+import com.udit.authlib.entity.base.BaseIdEntity;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "roles")
-@Data
-@RequiredArgsConstructor
-public class Role {
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private long id;
-
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Role extends BaseIdEntity {
   private String name;
 }
