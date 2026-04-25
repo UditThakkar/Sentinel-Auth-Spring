@@ -17,6 +17,7 @@ import com.udit.authlib.repository.RoleRepository;
 import com.udit.authlib.repository.UserRepository;
 import com.udit.authlib.service.AuditService;
 import com.udit.authlib.service.EmailService;
+import com.udit.authlib.service.TokenBlacklistService;
 import com.udit.authlib.service.VerificationTokenService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
